@@ -51,6 +51,7 @@ def post_form(message, target):
     yqfk_json['important_area'] = None
     # yqfk_json['current_region'] = None
     yqfk_json['confirm'] = 1
+    del yqfk_json['acid_test_results'] #新增的核酸检测项会导致提交表单异常，6.28后版本将此项暂时删除
 
     console_msg(yqfk_info['message'])
     message.append(yqfk_info['message'])
