@@ -10,11 +10,11 @@ import json
 
 username = ""
 password = ""
-sckey = None  # ServerChan Key
+sckey = ""  # wx_message_push-UID
 
 
 def get_page(message, target):
-    url = "https://cas.dgut.edu.cn/home/Oauth/getToken/appid/illnessProtectionHome/state/home.html"
+    url = "https://cas.dgut.edu.cn/home/Oauth/getToken/appid/yqfkdaka/state/home.html"
     session = requests.Session()
     origin = session.get(url=url)
     html = origin.content.decode('utf-8')
@@ -40,22 +40,28 @@ def get_page(message, target):
 
 
 def post_form(message, target):
+    #创建一个会话
     yqfk_session = requests.Session()
     yqfk_acesstoken = yqfk_session.get(url=target[0])
-    pattern = re.compile(r"access_token=(.*?)$", re.MULTILINE | re.DOTALL)
+    #获取auth验证,获取真正的access_token
+    #print(yqfk_acesstoken);
+    pattern = re.compile(r"token=(.*?)&", re.MULTILINE | re.DOTALL)
     access_token = pattern.search(yqfk_acesstoken.url).group(1)
-    headers_2 = {'authorization': 'Bearer ' + access_token}
+    auth_meta = {'token':access_token, 'state':'Home'}
+    #print(auth_meta);
+    result = yqfk_session.post(url="https://yqfk-daka-api.dgut.edu.cn/auth", headers= {},
+                               json=auth_meta).json()
+    #print(result)
+    access_token = result['access_token']
+    headers_2 = {'Authorization': 'Bearer ' + access_token}
     yqfk_session.get(url=yqfk_acesstoken.url)
-    yqfk_info = yqfk_session.get('https://yqfk.dgut.edu.cn/home/base_info/getBaseInfo', headers=headers_2).json()
-    yqfk_json = yqfk_info['info']
-    yqfk_json['important_area'] = None
-    # yqfk_json['current_region'] = None
-    yqfk_json['confirm'] = 1
-    del yqfk_json['acid_test_results'] #新增的核酸检测项会导致提交表单异常，6.28后版本将此项暂时删除
-
+    yqfk_info = yqfk_session.get('https://yqfk-daka-api.dgut.edu.cn/record', headers=headers_2).json()
+    yqfk_json = {'data':yqfk_info['user_data']}
     console_msg(yqfk_info['message'])
     message.append(yqfk_info['message'])
-    result = yqfk_session.post(url="https://yqfk.dgut.edu.cn/home/base_info/addBaseInfo", headers=headers_2,
+    #print(yqfk_json['data'])
+    #todo:提交form
+    result = yqfk_session.post(url="https://yqfk-daka-api.dgut.edu.cn/record", headers=headers_2,
                                json=yqfk_json).json()
 
     if 'message' not in result.keys():
@@ -69,7 +75,7 @@ def post_form(message, target):
         if '已提交' in result['message'] or '成功' in result['message']:
             console_msg('二次提交，确认成功', 0)
             message.append('二次提交，确认成功')
-            result = yqfk_session.post(url="https://yqfk.dgut.edu.cn/home/base_info/addBaseInfo", headers=headers_2,
+            result = yqfk_session.post(url="https://yqfk-data-api.dgut.edu.cn/record", headers=headers_2,
                                        json=yqfk_json).json()
             console_msg(result['message'])
             return 0
@@ -79,16 +85,17 @@ def post_form(message, target):
 
 def post_message(text, desp=None):
     if sckey is not None:
-        url = "https://sc.ftqq.com/" + sckey + ".send?text=" + text
+        url = "http://wxpusher.zjiecode.com/api/send/message/?appToken=AT_VnKPyP9NNJF6oEFtV1sujXxIL4Xifg0Y&uid="+sckey+"&content="
         if desp is not None:
-            url = url + "&desp="
             for d in desp:
-                url = url + str(d) + "%0D%0A%0D%0A"
+                text = text + str(d) + "%0D%0A%0D%0A"
+        url = url + text
         rep = requests.get(url=url).json()
-        if rep['errno'] == 0:
+        #print(rep)
+        if rep['success'] == 1:
             console_msg('ServerChan 发送成功', 0)
         else:
-            console_msg('ServerChan 发送失败', 1)
+            console_msg('ServerChan 发送失败' + rep['msg'], 1)
 
 
 def run():
@@ -127,11 +134,12 @@ if __name__ == '__main__':
         console_msg("ServerChan Key: " + sys.argv[3])
         sckey = sys.argv[3]
     else:
-        console_msg("不启用 Server 酱")
+        console_msg("不启用微信消息推送。")
 
     schedule = BlockingScheduler()
     try:
-        schedule.add_job(run, 'cron', hour=5, minute=10)
+        schedule.add_job(run, 'cron', hour='9', minute=0)
+        schedule.add_job(run, 'cron', hour='0-1', minute=20)
         console_msg('任务开始')
         run()
         schedule.start()
