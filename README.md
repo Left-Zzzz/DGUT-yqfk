@@ -1,14 +1,20 @@
+
+2021.12.23
+新版疫情防控自动打卡脚本，将旧版相关api更改成了新版api，脚本恢复正常使用。
+------
+
 ## Usage
 
 ```
 USERNAME   # 学号
 PASSWORD   # 中央认证系统密码
-SCKEY      # Server 酱密钥
+SCKEY      # 消息推送UID
 ```
 
-[Server 酱密钥获取](http://sc.ftqq.com/)
+消息推送获取UID
+关注公众号：wxpusher，然后点击「我的」-「我的UID」查询到UID。
 
-默认在 00:10 的时候提交
+默认在 00:20, 01:20, 09:00 的时候提交
 
 ### 方法一 (docker-compose)
 
