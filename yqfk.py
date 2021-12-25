@@ -69,16 +69,16 @@ def post_form(message, target):
         message.append('提交失败')
         return 1
     else:
-        console_msg(result['message'])
-        message.append(result['message'])
-
-        if '已提交' in result['message'] or '成功' in result['message']:
+        if '已提交' in result['message'] or '成功' in result['message'] or '已经' in result['message']:
             console_msg('二次提交，确认成功', 0)
             message.append('二次提交，确认成功')
-            result = yqfk_session.post(url="https://yqfk-data-api.dgut.edu.cn/record", headers=headers_2,
-                                       json=yqfk_json).json()
+            result = yqfk_session.get('https://yqfk-daka-api.dgut.edu.cn/record', headers=headers_2).json()
+            #result = yqfk_session.get(url="https://yqfk-data-api.dgut.edu.cn/record", headers=headers_2,
+            #                           json=yqfk_json).json()
             console_msg(result['message'])
             return 0
+        console_msg(result['message'])
+        message.append(result['message'])
         console_msg("二次提交，确认失败", 1)
         return 1
 
