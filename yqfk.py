@@ -57,6 +57,11 @@ def post_form(message, target):
     yqfk_session.get(url=yqfk_acesstoken.url)
     yqfk_info = yqfk_session.get('https://yqfk-daka-api.dgut.edu.cn/record', headers=headers_2).json()
     yqfk_json = {'data':yqfk_info['user_data']}
+    
+    # 2022-9-17 接口更新，需要自己填写体温和身体情况, 不然服务器会返回500状态码
+    yqfk_json['data']['health_situation'] = 1
+    yqfk_json['data']['body_temperature'] = '36.0'
+
     console_msg(yqfk_info['message'])
     message.append(yqfk_info['message'])
     #print(yqfk_json['data'])
@@ -80,15 +85,24 @@ def post_form(message, target):
         console_msg(result['message'])
         message.append(result['message'])
         console_msg("二次提交，确认失败", 1)
+        # 开发者接口调试
+        # console_msg("result:{}".format(result),1)
+        # console_msg("header:{}".format(headers_2),1)
+        # console_msg("json:{}".format(yqfk_json),1)
+
         return 1
 
 
 def post_message(text, desp=None):
     if sckey is not None:
         url = "http://wxpusher.zjiecode.com/api/send/message/?appToken=AT_VnKPyP9NNJF6oEFtV1sujXxIL4Xifg0Y&uid="+sckey+"&content="
-        if desp is not None:
+        # console_msg("type(message):{}".format(type(desp)), 0)
+        if type(desp) is list:
             for d in desp:
                 text = text + str(d) + "%0D%0A%0D%0A"
+        elif type(desp) is str:
+                text = text + desp + "%0D%0A%0D%0A"
+
         url = url + text
         rep = requests.get(url=url).json()
         #print(rep)
