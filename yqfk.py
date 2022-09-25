@@ -28,7 +28,7 @@ def get_page(message, target):
     chrome_options.add_argument('--disable-gpu')#不需要gpu加速
     chrome_options.add_argument('--no-sandbox') # 这个配置很重要
     browser = webdriver.Chrome(chrome_options=chrome_options, executable_path='./chromedriver')    # 如果没有把chromedriver加入到PATH中，就需要指明路径
-    browser.get(r'https://auth.dgut.edu.cn/authserver/login?service=https%3A%2F%2Fauth.dgut.edu.cn%2Fauthserver%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3D1021534300621787136%26redirect_uri%3Dhttps%253A%252F%252Fyqfk-daka.dgut.edu.cn%252Fnew_login%252Fdgut%26response_type%3Dcode%26client_name%3DCasOAuthClient')  
+    browser.get(r'https://yqfk-daka.dgut.edu.cn/')
     time.sleep(2)
     # 定位搜索框
     input = browser.find_element_by_id('username')
@@ -42,8 +42,6 @@ def get_page(message, target):
     btn = browser.find_element_by_id('login_submit')
     btn.click()
 
-    time.sleep(2)
-    browser.get('https://yqfk-daka.dgut.edu.cn/')
     time.sleep(2)
     cookies = browser.get_cookies()
     #print('当前cookie{}'.format(cookies))
